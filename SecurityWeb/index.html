@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE-edge" />
+        <meta name="viewpoint" content="Width=device-width, initial-scale=1.0" />
+        <title>SAFE WEB</title>
+        <link rel="stylesheet" href="Css/EstiloMenu.css">
+        <link rel="icon" type="image/png" href="IMAGENES/WEBLOGO.png">
+    </head>
+    <body>
+        <nav class="Menu_principal">
+            <a href="Index.html" class="logo">
+                <img src="IMAGENES/LOGO.png" alt="Logo">
+            </a>
+            <ul> 
+                <li><a href="Index.html">MENU</a></li> 
+                <li><a href="HTML/Practicar.html">A PRACTICAR!</a></li> 
+                <li>
+                    <a id="toggleRacha"><img src="IMAGENES/FUEGO.png" alt="FUEGO" style="width: 55px;">3</a>
+                    <div id="rachaContenido" style="display: none;">
+                        <img src="IMAGENES/CALENDARIO.png" alt="Racha Calendario" style="width: 350px;">
+                    </div>
+                </li>
+            </ul>
+        </nav>
+
+        <div style="position: relative; max-width: 100%; margin: 20px auto;">
+            <a href="HTML/Practicar.html">
+                <img id="Ciclo" src="IMAGENES/MENU1.png" alt="PrincipalNo1" width="900" height="500" style="display: block; margin: 0 auto; border-radius: 10px;">
+            </a>
+            <button id="prev" style="position: absolute; top: 50%; left: 0; transform: translateY(-50%); font-size: 2em; background: none; border: none; cursor: pointer;">&#10094;</button>
+            <button id="next" style="position: absolute; top: 50%; right: 0; transform: translateY(-50%); font-size: 2em; background: none; border: none; cursor: pointer;">&#10095;</button>
+        </div>
+    
+
+        <div class="imagen-juego">
+            <a href="HTML/COFFEE.html">
+                <img src="Imagenes/Coffee_image.png" alt="Go coffee">
+            </a>
+        </div>
+
+        <script src="JS/Inicio.js"></script>
+    </body>
+</html>

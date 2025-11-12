@@ -1,0 +1,1665 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cibercafé Survival</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #1a1a2e;
+            color: #e6e6e6;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .header {
+            background-color: #0f3460;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #533483;
+        }
+
+        .header-center {
+            flex: 1;
+            text-align: center;
+        }
+
+        .header-left, .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .computers-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 25px;
+            padding: 25px;
+            flex: 1;
+        }
+
+        .computer {
+            background-color: #16213e;
+            border: 2px solid #0f3460;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .computer.selected {
+            border-color: #00ff00;
+            transform: scale(1.05);
+        }
+
+        .computer.infected {
+            background-color: #3a0c0c;
+            border-color: #ff0000;
+        }
+
+        .computer.infected .computer-screen {
+            background-color: #2a0a0a;
+            color: #ffcccc;
+        }
+
+        .computer.infected .computer-info {
+            background-color: #5a0f0f;
+            color: #ffcccc;
+        }
+
+        .computer.infected .website-url {
+            color: #ff9999;
+        }
+
+        .computer.infected .activity {
+            color: #ff9999;
+        }
+
+        .computer.infected .connections {
+            color: #ff9999;
+        }
+
+        .computer-screen {
+            flex: 1;
+            background-color: #000;
+            padding: 10px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .computer-key {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 17px; /* Aumentado en 140% */
+            font-weight: bold;
+            z-index: 10;
+        }
+
+        .website-content {
+            color: #fff;
+            font-size: 14px;
+            line-height: 1.4;
+            flex: 1;
+        }
+
+        .website-url {
+            color: #4dabf7;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .unsafe-site {
+            color: #ff9900;
+        }
+
+        .computer-info {
+            background-color: #0f3460;
+            padding: 8px;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .time-progress {
+            height: 6px;
+            background-color: #0f3460;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        .time-progress-fill {
+            height: 100%;
+            width: 50%;
+            transition: width 0.5s, background-color 0.5s;
+        }
+
+        .actions {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            opacity: 0.8;
+        }
+
+        .action-btn {
+            background-color: #533483;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .action-btn:hover {
+            background-color: #e94560;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .modal-content {
+            background-color: #16213e;
+            border: 2px solid #533483;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 1000px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #533483;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: #e94560;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .instructions-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .key-box {
+            background-color: #0f3460;
+            border-radius: 5px;
+            padding: 10px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            width: 60px;
+            height: 60px;
+            margin: 0 auto;
+            justify-content: center;
+        }
+
+        .key {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .key-description {
+            font-size: 10px;
+        }
+
+        .btn {
+            background-color: #533483;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #e94560;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #16213e;
+            border: 2px solid #533483;
+            border-radius: 5px;
+            padding: 15px;
+            max-width: 300px;
+            z-index: 1000;
+            transition: transform 0.3s, opacity 0.3s;
+            transform: translateX(150%);
+            opacity: 0;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .notification.success {
+            border-color: #4dabf7;
+        }
+
+        .notification.error {
+            border-color: #e94560;
+        }
+
+        .time-display {
+            font-size: 27px; /* Aumentado en 150% */
+            font-weight: bold;
+        }
+
+        .money-display {
+            font-size: 27px; /* Aumentado en 150% */
+            font-weight: bold;
+        }
+
+        .money-green {
+            color: #4CAF50; /* Verde para más del 60% */
+        }
+
+        .money-yellow {
+            color: #FFC107; /* Amarillo para 30%-60% */
+        }
+
+        .money-red {
+            color: #F44336; /* Rojo para menos del 30% */
+        }
+
+        .difficulty-display {
+            font-size: 14px;
+            color: #aaa;
+            margin-top: 5px;
+        }
+
+        .connections {
+            margin-top: 10px;
+            font-size: 16px;
+            color: #aaa;
+        }
+
+        .activity {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #e6e6e6;
+        }
+
+        .suspicious-activity {
+            color: #ff9900;
+        }
+
+        .points-change {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            animation: fadeUp 2s forwards;
+        }
+
+        .points-positive {
+            color: #4CAF50;
+        }
+
+        .points-negative {
+            color: #F44336;
+        }
+
+        @keyframes fadeUp {
+            0% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+        }
+
+        .warning-icon {
+            color: #ff9900;
+            margin-right: 5px;
+        }
+
+        .instructions-text {
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+
+        .difficulty-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .difficulty-btn {
+            background-color: #0f3460;
+            color: white;
+            border: 2px solid #533483;
+            padding: 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 16px;
+        }
+
+        .difficulty-btn:hover {
+            background-color: #533483;
+        }
+
+        .difficulty-btn.selected {
+            background-color: #4CAF50;
+            border-color: #4CAF50;
+        }
+
+        .end-screen {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .end-screen h2 {
+            margin-bottom: 20px;
+            font-size: 32px;
+        }
+
+        .end-screen p {
+            margin: 10px 0;
+            font-size: 18px;
+        }
+
+        .stats {
+            margin: 20px 0;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-left">
+                <div class="time-display" id="time">8:00 AM</div>
+                <div class="money-display" id="money">$2,000,000</div>
+            </div>
+            <div class="header-right">
+                <div class="difficulty-display" id="difficulty">Dificultad: 100%</div>
+                <button class="btn" id="info-btn">Instrucciones</button>
+            </div>
+        </div>
+        
+        <div class="computers-grid" id="computers-container">
+            <!-- Las computadoras se generarán con JavaScript -->
+        </div>
+
+        <div class="actions" id="actions" style="display: none;">
+            <button class="action-btn" id="refresh-btn">Refrescar Usuario (J)</button>
+            <button class="action-btn" id="block-btn">Bloquear Actividad (K)</button>
+            <button class="action-btn" id="scan-btn">Escanear PC (L)</button>
+        </div>
+    </div>
+
+    <!-- Modal de selección de dificultad -->
+    <div class="modal" id="difficulty-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Selecciona la Dificultad</h2>
+            </div>
+            <div class="modal-body">
+                <div class="difficulty-options">
+                    <button class="difficulty-btn" data-difficulty="easy">Fácil</button>
+                    <button class="difficulty-btn" data-difficulty="medium">Medio</button>
+                    <button class="difficulty-btn" data-difficulty="hard">Difícil</button>
+                    <button class="difficulty-btn" data-difficulty="expert">Experto</button>
+                    <button class="difficulty-btn" data-difficulty="infinite">Infinito</button>
+                </div>
+                <p style="margin-top: 20px; text-align: center; font-style: italic;">Selecciona una dificultad para comenzar</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de instrucciones -->
+    <div class="modal" id="instructions-modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Instrucciones del Juego</h2>
+                <button class="close-modal" id="close-instructions">X</button>
+            </div>
+            <div class="modal-body">
+                <p class="instructions-text">Como dueño de un cibercafé, debes gestionar 9 computadoras. Los usuarios pueden visitar sitios web legítimos o peligrosos. Si un usuario visita un sitio peligroso, la computadora puede infectarse con un virus.</p>
+                <p class="instructions-text">Controles:</p>
+                <div class="instructions-grid">
+                    <!-- Se generará con JavaScript -->
+                </div>
+                <p class="instructions-text">Cuando una computadora está seleccionada (manteniendo presionada la tecla correspondiente), puedes realizar acciones con las teclas J, K y L.</p>
+                <p class="instructions-text">Acciones:</p>
+                <ul class="instructions-text">
+                    <li><strong>Refrescar Usuario (J):</strong> Solo se permite después del tiempo asignado. Si se refresca antes, penalización de $100,000. Si se refresca después, bono de $100,000 que disminuye $10,000 por minuto. Después de 10 minutos, penalización de $10,000 por minuto.</li>
+                    <li><strong>Bloquear Actividad (K):</strong> Bloquea actividades sospechosas en sitios inseguros. Si se bloquea a tiempo, evita que el PC se infecte.</li>
+                    <li><strong>Escanear PC (L):</strong> Inicia un escaneo para reparar un PC infectado. El escaneo toma el doble del tiempo que el virus ha estado activo.</li>
+                </ul>
+                <p class="instructions-text">Actividades sospechosas (solo en sitios inseguros): Redirigiendo a un sitio web sospechoso, Aceptando cookies de rastreo, Descargando un archivo, Ejecutando script sospechoso, Solicitando permisos de administrador.</p>
+                <p class="instructions-text">Si una actividad sospechosa termina en un sitio inseguro, el PC se infectará. Las actividades duran entre 6 y 15 minutos.</p>
+                <p class="instructions-text">Ganas si llegas a las 8:00 PM con dinero restante. Pierdes si te quedas sin dinero.</p>
+                <p class="instructions-text"><strong>DIFICULTAD PROGRESIVA:</strong> La dificultad aumenta con el tiempo, haciendo que los sitios peligrosos y actividades sospechosas sean más comunes.</p>
+                <p class="instructions-text"><strong>NOTA:</strong> El tiempo avanza 1 minuto cada 400ms.</p>
+                <p style="margin-top: 20px; text-align: center; font-style: italic;">Presiona ESC para cerrar esta ventana</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de victoria -->
+    <div class="modal" id="win-modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>¡Felicidades, has ganado!</h2>
+            </div>
+            <div class="modal-body">
+                <div class="end-screen">
+                    <p>Precisión: <span id="win-accuracy">0%</span></p>
+                    <p>Dinero al final del día: <span id="win-money">$0</span></p>
+                    <p>Dificultad final: <span id="win-difficulty">0%</span></p>
+                    <button class="btn" id="win-close">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de derrota -->
+    <div class="modal" id="lose-modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>¡Has perdido!</h2>
+            </div>
+            <div class="modal-body">
+                <div class="end-screen">
+                    <p>Precisión: <span id="lose-accuracy">0%</span></p>
+                    <p>Dinero al final del día: <span id="lose-money">$0</span></p>
+                    <p>Dificultad final: <span id="lose-difficulty">0%</span></p>
+                    <p id="lose-time">Hora final: <span id="final-time">8:00 AM</span></p>
+                    <p id="survived-time" style="display: none;">Tiempo sobrevivido: <span id="survived-time-value">0 minutos</span></p>
+                    <button class="btn" id="lose-close">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <script>
+        // Definición de sitios web con conexiones inseguras
+        const websites = {
+            // Email
+            "gmail": {
+                name: "Gmail",
+                type: "email",
+                safe: true,
+                connections: ["facebook", "outlook", "yahoo", "netflix", "youtube", "amazon", "flixbaba", "sflix"]
+            },
+            "outlook": {
+                name: "Outlook",
+                type: "email",
+                safe: true,
+                connections: ["gmail", "yahoo", "facebook", "instagram", "mercado-libre", "sflix", "animeflv"]
+            },
+            "yahoo": {
+                name: "Yahoo Mail",
+                type: "email",
+                safe: true,
+                connections: ["gmail", "outlook", "twitter", "twitch", "flixbaba", "animeflv", "verseriesonline"]
+            },
+            
+            // Redes Sociales
+            "facebook": {
+                name: "Facebook",
+                type: "social",
+                safe: true,
+                connections: ["instagram", "twitter", "youtube", "tiktok", "flixbaba", "elamigos", "sflix", "animeflv"]
+            },
+            "instagram": {
+                name: "Instagram",
+                type: "social",
+                safe: true,
+                connections: ["facebook", "twitter", "tiktok", "youtube", "sflix", "verseriesonline", "freesteam"]
+            },
+            "twitter": {
+                name: "Twitter",
+                type: "social",
+                safe: true,
+                connections: ["facebook", "instagram", "tiktok", "youtube", "animeflv", "flixbaba", "lovesnes"]
+            },
+            "tiktok": {
+                name: "TikTok",
+                type: "social",
+                safe: true,
+                connections: ["facebook", "instagram", "twitter", "youtube", "verseriesonline", "animeflv", "freesteam"]
+            },
+            
+            // Streaming Legal
+            "netflix": {
+                name: "Netflix",
+                type: "streaming",
+                safe: true,
+                connections: ["youtube", "spotify", "twitch", "amazon", "flixbaba", "sflix", "disney-plus", "hbo-max"]
+            },
+            "youtube": {
+                name: "YouTube",
+                type: "streaming",
+                safe: true,
+                connections: ["netflix", "spotify", "twitch", "facebook", "instagram", "animeflv", "verseriesonline"]
+            },
+            "spotify": {
+                name: "Spotify",
+                type: "streaming",
+                safe: true,
+                connections: ["youtube", "twitch", "netflix", "sflix", "apple-music", "soundcloud"]
+            },
+            "twitch": {
+                name: "Twitch",
+                type: "streaming",
+                safe: true,
+                connections: ["youtube", "twitter", "facebook", "steam", "epic-games", "freesteam", "elamigos"]
+            },
+            "disney-plus": {
+                name: "Disney+",
+                type: "streaming",
+                safe: true,
+                connections: ["netflix", "youtube", "hbo-max", "amazon", "flixbaba"]
+            },
+            "hbo-max": {
+                name: "HBO Max",
+                type: "streaming",
+                safe: true,
+                connections: ["netflix", "disney-plus", "youtube", "amazon", "sflix"]
+            },
+            "apple-music": {
+                name: "Apple Music",
+                type: "streaming",
+                safe: true,
+                connections: ["spotify", "youtube", "soundcloud", "sflix"]
+            },
+            "soundcloud": {
+                name: "SoundCloud",
+                type: "streaming",
+                safe: true,
+                connections: ["spotify", "apple-music", "youtube", "freesteam"]
+            },
+            
+            // Streaming Pirata
+            "flixbaba": {
+                name: "flixbaba.com",
+                type: "streaming-pirata",
+                safe: false,
+                connections: ["sflix", "animeflv", "verseriesonline", "netflix", "youtube", "facebook", "twitter"]
+            },
+            "sflix": {
+                name: "sflix.com",
+                type: "streaming-pirata",
+                safe: false,
+                connections: ["flixbaba", "animeflv", "verseriesonline", "spotify", "instagram", "netflix", "hbo-max"]
+            },
+            "animeflv": {
+                name: "animeflv.net",
+                type: "streaming-pirata",
+                safe: false,
+                connections: ["flixbaba", "sflix", "verseriesonline", "lovesnes", "twitter", "youtube", "crunchyroll"]
+            },
+            "verseriesonline": {
+                name: "verseriesonline.com",
+                type: "streaming-pirata",
+                safe: false,
+                connections: ["flixbaba", "sflix", "animeflv", "freesteam", "tiktok", "netflix", "disney-plus"]
+            },
+            "crunchyroll": {
+                name: "Crunchyroll",
+                type: "streaming",
+                safe: true,
+                connections: ["animeflv", "netflix", "youtube", "twitter", "facebook"]
+            },
+            
+            // Juegos Legales
+            "steam": {
+                name: "Steam",
+                type: "juegos",
+                safe: true,
+                connections: ["epic-games", "twitch", "youtube", "elamigos", "ubisoft", "ea-games"]
+            },
+            "epic-games": {
+                name: "Epic Games",
+                type: "juegos",
+                safe: true,
+                connections: ["steam", "twitch", "youtube", "lovesnes", "ubisoft", "ea-games"]
+            },
+            "ubisoft": {
+                name: "Ubisoft",
+                type: "juegos",
+                safe: true,
+                connections: ["steam", "epic-games", "twitch", "elamigos"]
+            },
+            "ea-games": {
+                name: "EA Games",
+                type: "juegos",
+                safe: true,
+                connections: ["steam", "epic-games", "twitch", "freesteam"]
+            },
+            
+            // Juegos Pirata
+            "elamigos": {
+                name: "elamigos.com",
+                type: "juegos-pirata",
+                safe: false,
+                connections: ["lovesnes", "freesteam", "animeflv", "steam", "ubisoft", "epic-games"]
+            },
+            "lovesnes": {
+                name: "lovesnes.com",
+                type: "juegos-pirata",
+                safe: false,
+                connections: ["elamigos", "freesteam", "animeflv", "epic-games", "steam", "twitch"]
+            },
+            "freesteam": {
+                name: "freesteam.com",
+                type: "juegos-pirata",
+                safe: false,
+                connections: ["elamigos", "lovesnes", "verseriesonline", "twitch", "ea-games", "youtube"]
+            },
+            
+            // Otros
+            "amazon": {
+                name: "Amazon",
+                type: "otros",
+                safe: true,
+                connections: ["mercado-libre", "gmail", "netflix", "flixbaba", "ebay", "aliexpress"]
+            },
+            "mercado-libre": {
+                name: "Mercado Libre",
+                type: "otros",
+                safe: true,
+                connections: ["amazon", "outlook", "sflix", "ebay", "facebook"]
+            },
+            "ebay": {
+                name: "eBay",
+                type: "otros",
+                safe: true,
+                connections: ["amazon", "mercado-libre", "facebook", "sflix"]
+            },
+            "aliexpress": {
+                name: "AliExpress",
+                type: "otros",
+                safe: true,
+                connections: ["amazon", "ebay", "facebook", "animeflv"]
+            },
+            "banco": {
+                name: "Sitio Bancario",
+                type: "otros",
+                safe: true,
+                connections: ["gmail", "outlook", "yahoo", "freesteam", "amazon", "mercado-libre"]
+            }
+        };
+
+        // Actividades por tipo de sitio web
+        const activitiesByType = {
+            "email": [
+                "Redactando un correo",
+                "Leyendo bandeja de entrada",
+                "Enviando adjuntos",
+                "Organizando carpetas",
+                "Configurando filtros"
+            ],
+            "social": [
+                "Navegando en el feed",
+                "Chateando con amigos",
+                "Subiendo una foto",
+                "Viendo historias",
+                "Comentando publicaciones"
+            ],
+            "streaming": [
+                "Reproduciendo contenido multimedia",
+                "Explorando catálogo",
+                "Creando lista de reproducción",
+                "Viendo recomendaciones",
+                "Configurando perfil"
+            ],
+            "streaming-pirata": [
+                "Reproduciendo contenido multimedia",
+                "Explorando catálogo",
+                "Buscando subtítulos",
+                "Redirigiendo a un sitio web sospechoso",
+                "Descargando un archivo"
+            ],
+            "juegos": [
+                "Jugando un juego",
+                "Explorando tienda",
+                "Personalizando perfil",
+                "Chateando en el juego",
+                "Descargando actualización"
+            ],
+            "juegos-pirata": [
+                "Jugando un juego",
+                "Buscando cracks",
+                "Descargando un archivo",
+                "Aceptando cookies de rastreo",
+                "Redirigiendo a un sitio web sospechoso"
+            ],
+            "otros": [
+                "Navegando productos",
+                "Comparando precios",
+                "Realizando una compra",
+                "Revisando cuenta",
+                "Consultando saldo"
+            ]
+        };
+
+        // Actividades sospechosas (solo en sitios inseguros)
+        const suspiciousActivities = [
+            "Redirigiendo a un sitio web sospechoso",
+            "Aceptando cookies de rastreo",
+            "Descargando un archivo",
+            "Ejecutando script sospechoso",
+            "Solicitando permisos de administrador"
+        ];
+
+        // Configuración de dificultad
+        const difficultySettings = {
+            easy: {
+                name: "Fácil",
+                timeRange: [120, 195], // 2h a 3h15m
+                initialDifficulty: 40
+            },
+            medium: {
+                name: "Medio",
+                timeRange: [75, 150], // 1h15m a 2h30m
+                initialDifficulty: 70
+            },
+            hard: {
+                name: "Difícil",
+                timeRange: [45, 135], // 45m a 2h15m
+                initialDifficulty: 100
+            },
+            expert: {
+                name: "Experto",
+                timeRange: [30, 90], // 30m a 1h30m
+                initialDifficulty: 150
+            },
+            infinite: {
+                name: "Infinito",
+                timeRange: [15, 180], // 15m a 3h
+                initialDifficulty: 100 // Cambiado de 0 a 100
+            }
+        };
+
+        // Estado del juego
+        const gameState = {
+            money: 2000000,
+            time: 8, // 8:00 AM
+            minutes: 0, // Minutos adicionales
+            gameOver: false,
+            computers: [],
+            selectedComputers: new Set(),
+            gameInterval: null,
+            paused: false,
+            difficultyFactor: 1.0, // Factor de dificultad (1.0 a 1.8)
+            difficultyPercentage: 100, // Porcentaje de dificultad
+            selectedDifficulty: "hard", // Dificultad por defecto
+            accuracyData: [], // Datos para calcular precisión
+            infiniteMode: false // Modo infinito
+        };
+
+        // Mapeo de teclas a índices de computadoras
+        const keyToComputerMap = {
+            'KeyQ': 1,
+            'KeyW': 2,
+            'KeyE': 3,
+            'KeyA': 4,
+            'KeyS': 5,
+            'KeyD': 6,
+            'KeyZ': 7,
+            'KeyX': 8,
+            'KeyC': 9
+        };
+
+        // Mapeo inverso para mostrar las teclas
+        const computerToKeyMap = {
+            1: 'Q',
+            2: 'W',
+            3: 'E',
+            4: 'A',
+            5: 'S',
+            6: 'D',
+            7: 'Z',
+            8: 'X',
+            9: 'C'
+        };
+
+        // Calcular factor de dificultad basado en el tiempo
+        function calculateDifficulty() {
+            if (gameState.infiniteMode) {
+                // En modo infinito, la dificultad aumenta continuamente
+                const currentMinutes = (gameState.time - 8) * 60 + gameState.minutes;
+                gameState.difficultyFactor = 1.0 + (0.8 * (currentMinutes / 720)); // Mismo cálculo pero sin límite
+                gameState.difficultyPercentage = Math.round(100 + (80 * (currentMinutes / 720)));
+            } else {
+                // El juego dura de 8:00 AM a 8:00 PM (12 horas = 720 minutos)
+                const totalGameMinutes = 720;
+                const currentMinutes = (gameState.time - 8) * 60 + gameState.minutes;
+                
+                // El factor de dificultad va de 1.0 a 1.8 (180%)
+                const progress = currentMinutes / totalGameMinutes;
+                gameState.difficultyFactor = 1.0 + (0.8 * progress);
+                gameState.difficultyPercentage = Math.round(100 + (80 * progress));
+            }
+            
+            // Aplicar dificultad inicial según la configuración seleccionada
+            const initialFactor = difficultySettings[gameState.selectedDifficulty].initialDifficulty / 100;
+            gameState.difficultyFactor = initialFactor + (gameState.difficultyFactor - 1.0);
+            gameState.difficultyPercentage = Math.round(difficultySettings[gameState.selectedDifficulty].initialDifficulty + (gameState.difficultyPercentage - 100));
+            
+            // Actualizar display de dificultad
+            document.getElementById('difficulty').textContent = `Dificultad: ${gameState.difficultyPercentage}%`;
+        }
+
+        // Actualizar color del dinero según el porcentaje
+        function updateMoneyColor() {
+            const moneyElement = document.getElementById('money');
+            const percentage = gameState.money / 2000000; // Porcentaje del dinero inicial
+            
+            moneyElement.classList.remove('money-green', 'money-yellow', 'money-red');
+            
+            if (percentage > 0.6) {
+                moneyElement.classList.add('money-green');
+            } else if (percentage > 0.3) {
+                moneyElement.classList.add('money-yellow');
+            } else {
+                moneyElement.classList.add('money-red');
+            }
+        }
+
+        // Inicializar computadoras
+        function initializeComputers() {
+            const computersContainer = document.getElementById('computers-container');
+            computersContainer.innerHTML = '';
+            
+            gameState.computers = [];
+            
+            for (let i = 0; i < 9; i++) {
+                const computer = {
+                    id: i + 1,
+                    currentWebsite: getRandomSafeWebsite(),
+                    timeAllotted: getRandomTimeIncrement(),
+                    timeUsed: 0,
+                    infected: false,
+                    userActive: true,
+                    virusMinutes: 0,
+                    scanning: false,
+                    scanProgress: 0,
+                    scanRequired: 0,
+                    currentActivity: "",
+                    activityDuration: getRandomActivityDuration(),
+                    activityProgress: 0,
+                    pointsChange: 0,
+                    showPointsChange: false,
+                    lastSuspiciousActivity: false,
+                    lastSuspiciousType: null
+                };
+                
+                // Asignar actividad inicial basada en el sitio web
+                computer.currentActivity = getActivityForWebsite(computer.currentWebsite);
+                
+                gameState.computers.push(computer);
+                
+                const computerElement = createComputerElement(computer);
+                computersContainer.appendChild(computerElement);
+            }
+        }
+
+        // Crear elemento de computadora
+        function createComputerElement(computer) {
+            const computerElement = document.createElement('div');
+            computerElement.className = 'computer';
+            if (computer.infected) computerElement.classList.add('infected');
+            computerElement.dataset.id = computer.id;
+            
+            // Calcular el color de la barra de progreso
+            const progressColor = getProgressColor(computer.timeUsed, computer.timeAllotted);
+            const progressWidth = Math.min(100, (computer.timeUsed / computer.timeAllotted) * 100);
+            
+            // Obtener conexiones para mostrar
+            const currentWebsite = websites[computer.currentWebsite];
+            const connections = currentWebsite.connections.slice(0, 3);
+            const connectionsText = connections.map(conn => websites[conn].name).join(', ');
+            
+            // Determinar si la actividad es sospechosa
+            const isSuspicious = suspiciousActivities.includes(computer.currentActivity);
+            const activityClass = isSuspicious ? 'suspicious-activity' : '';
+            const warningIcon = isSuspicious ? '⚠️ ' : '';
+            
+            // Determinar clase para el sitio web (seguro o inseguro)
+            const websiteClass = (currentWebsite.safe || !isSuspicious) ? '' : 'unsafe-site';
+            const websiteName = currentWebsite.safe ? currentWebsite.name : 
+                               (isSuspicious ? currentWebsite.name + ' ⚠️' : currentWebsite.name);
+            
+            let screenContent = '';
+            if (computer.scanning) {
+                // Mostrar progreso de escaneo
+                const scanPercentage = Math.min(100, (computer.scanProgress / computer.scanRequired) * 100);
+                screenContent = `
+                    <div class="computer-key">${computerToKeyMap[computer.id]}</div>
+                    <div class="website-content">
+                        <div class="website-url">Escaneando PC...</div>
+                        <div>Progreso: ${scanPercentage.toFixed(1)}%</div>
+                        <div>Tiempo restante: ${computer.scanRequired - computer.scanProgress} min</div>
+                    </div>
+                    <div class="time-progress">
+                        <div class="time-progress-fill" style="width: ${scanPercentage}%; background-color: #4dabf7;"></div>
+                    </div>
+                `;
+            } else {
+                screenContent = `
+                    <div class="computer-key">${computerToKeyMap[computer.id]}</div>
+                    <div class="website-content">
+                        <div class="website-url ${websiteClass}">${websiteName}</div>
+                        <div>Tiempo usado: ${Math.floor(computer.timeUsed / 60)}:${(computer.timeUsed % 60).toString().padStart(2, '0')}</div>
+                        <div>Tiempo asignado: ${Math.floor(computer.timeAllotted / 60)}:${(computer.timeAllotted % 60).toString().padStart(2, '0')}</div>
+                        ${gameState.selectedComputers.has(computer.id) && computer.currentActivity ? `<div class="activity ${activityClass}">${warningIcon}${computer.currentActivity}</div>` : ''}
+                        ${computer.infected ? `<div class="warning">¡INFECTADO CON VIRUS! (${computer.virusMinutes} min)</div>` : ''}
+                        ${gameState.selectedComputers.has(computer.id) ? `<div class="connections">Conexiones: ${connectionsText}</div>` : ''}
+                        ${computer.showPointsChange ? `<div class="points-change ${computer.pointsChange > 0 ? 'points-positive' : 'points-negative'}">${computer.pointsChange > 0 ? '+' : ''}$${computer.pointsChange.toLocaleString()}</div>` : ''}
+                    </div>
+                    <div class="time-progress">
+                        <div class="time-progress-fill" style="width: ${progressWidth}%; background-color: ${progressColor};"></div>
+                    </div>
+                `;
+            }
+            
+            computerElement.innerHTML = `
+                <div class="computer-screen">
+                    ${screenContent}
+                </div>
+                <div class="computer-info">
+                    <span>PC ${computer.id}</span>
+                    <span>${computer.infected ? '⚠️' : (computer.scanning ? '🔍' : '✅')}</span>
+                </div>
+            `;
+            
+            return computerElement;
+        }
+
+        // Obtener actividad apropiada para el sitio web
+        function getActivityForWebsite(websiteKey) {
+            const website = websites[websiteKey];
+            const activities = activitiesByType[website.type];
+            return activities[Math.floor(Math.random() * activities.length)];
+        }
+
+        // Obtener una actividad sospechosa aleatoria
+        function getRandomSuspiciousActivity(lastSuspiciousType) {
+            let availableActivities = [...suspiciousActivities];
+            
+            // Evitar que se repita la misma actividad sospechosa consecutivamente
+            if (lastSuspiciousType && availableActivities.includes(lastSuspiciousType)) {
+                availableActivities = availableActivities.filter(activity => activity !== lastSuspiciousType);
+            }
+            
+            // Si no hay actividades disponibles después de filtrar, usar todas
+            if (availableActivities.length === 0) {
+                availableActivities = [...suspiciousActivities];
+            }
+            
+            return availableActivities[Math.floor(Math.random() * availableActivities.length)];
+        }
+
+        // Obtener duración aleatoria de actividad (6-15 minutos)
+        function getRandomActivityDuration() {
+            return Math.floor(Math.random() * 10) + 6; // 6-15 minutos
+        }
+
+        // Obtener color de la barra de progreso según el tiempo usado
+        function getProgressColor(timeUsed, timeAllotted) {
+            const percentage = timeUsed / timeAllotted;
+            const timeRemaining = timeAllotted - timeUsed;
+            
+            if (percentage <= 0.5) {
+                return '#4CAF50'; // Verde
+            } else if (timeRemaining > 0) {
+                return '#FFC107'; // Amarillo
+            } else {
+                return '#F44336'; // Rojo
+            }
+        }
+
+        // Obtener un tiempo aleatorio según la dificultad seleccionada
+        function getRandomTimeIncrement() {
+            const range = difficultySettings[gameState.selectedDifficulty].timeRange;
+            const min = range[0];
+            const max = range[1];
+            
+            // Generar múltiplos de 15 minutos dentro del rango
+            const increments = [];
+            for (let i = min; i <= max; i += 15) {
+                increments.push(i);
+            }
+            
+            return increments[Math.floor(Math.random() * increments.length)];
+        }
+
+        // Obtener un sitio web seguro aleatorio para empezar
+        function getRandomSafeWebsite() {
+            const safeWebsites = Object.keys(websites).filter(key => websites[key].safe);
+            return safeWebsites[Math.floor(Math.random() * safeWebsites.length)];
+        }
+
+        // Obtener un sitio web peligroso aleatorio
+        function getRandomUnsafeWebsite() {
+            const unsafeWebsites = Object.keys(websites).filter(key => !websites[key].safe);
+            return unsafeWebsites[Math.floor(Math.random() * unsafeWebsites.length)];
+        }
+
+        // Mostrar notificación
+        function showNotification(message, type) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type} show`;
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Mostrar cambio de puntos en una computadora
+        function showPointsChange(computer, amount) {
+            computer.pointsChange = amount;
+            computer.showPointsChange = true;
+            
+            setTimeout(() => {
+                computer.showPointsChange = false;
+                updateInterface();
+            }, 2000);
+            
+            updateInterface();
+        }
+
+        // Actualizar la interfaz de usuario
+        function updateInterface() {
+            // Actualizar dinero
+            document.getElementById('money').textContent = `$${gameState.money.toLocaleString()}`;
+            updateMoneyColor();
+            
+            // Actualizar hora
+            const timeElement = document.getElementById('time');
+            let displayHour, ampm;
+            
+            if (gameState.infiniteMode && gameState.time >= 24) {
+                // En modo infinito, después de las 11:59 PM, mostrar 12 AM
+                displayHour = 12;
+                ampm = 'AM';
+            } else {
+                ampm = gameState.time < 12 ? 'AM' : 'PM';
+                displayHour = gameState.time > 12 ? gameState.time - 12 : gameState.time;
+                if (displayHour === 0) displayHour = 12; // Medianoche
+            }
+            
+            const displayMinutes = gameState.minutes.toString().padStart(2, '0');
+            timeElement.textContent = `${displayHour}:${displayMinutes} ${ampm}`;
+            
+            // Actualizar computadoras
+            const computersContainer = document.getElementById('computers-container');
+            computersContainer.innerHTML = '';
+            
+            gameState.computers.forEach(computer => {
+                const computerElement = createComputerElement(computer);
+                if (gameState.selectedComputers.has(computer.id)) {
+                    computerElement.classList.add('selected');
+                }
+                computersContainer.appendChild(computerElement);
+            });
+            
+            // Mostrar u ocultar acciones si hay computadoras seleccionadas
+            const actions = document.getElementById('actions');
+            if (gameState.selectedComputers.size > 0) {
+                actions.style.display = 'flex';
+            } else {
+                actions.style.display = 'none';
+            }
+        }
+
+        // Refrescar usuario (acción J)
+        function refreshUser() {
+            if (gameState.gameOver || gameState.paused) return;
+            
+            let refreshed = false;
+            gameState.selectedComputers.forEach(computerId => {
+                const computer = gameState.computers.find(c => c.id === computerId);
+                if (computer && computer.userActive && !computer.scanning) {
+                    // Verificar si se está refrescando antes del tiempo asignado
+                    if (computer.timeUsed < computer.timeAllotted) {
+                        // Penalización por refrescar antes (reducida en 50%)
+                        const penalty = 300000;
+                        gameState.money -= penalty;
+                        showPointsChange(computer, -penalty);
+                        showNotification(`¡Penalización de $${penalty.toLocaleString()} por refrescar antes del tiempo!`, 'error');
+                        
+                        // Registrar precisión (0% por refrescar antes)
+                        gameState.accuracyData.push(0);
+                    } else {
+                        // Calcular bonificación o penalización por tiempo excedido
+                        const timeDifference = computer.timeUsed - computer.timeAllotted;
+                        
+                        if (timeDifference <= 10) {
+                            // Bonificación por refrescar a tiempo
+                            let bonus = 100000 - (timeDifference * 10000);
+                            if (bonus < 0) bonus = 0;
+                            
+                            if (bonus > 0) {
+                                gameState.money += bonus;
+                                showPointsChange(computer, bonus);
+                                showNotification(`¡Bono de $${bonus.toLocaleString()} por refrescar cerca del tiempo exacto!`, 'success');
+                            }
+                            
+                            // Registrar precisión
+                            const accuracy = Math.max(0, 100 - (timeDifference * 10));
+                            gameState.accuracyData.push(accuracy);
+                        } else {
+                            // Penalización por refrescar demasiado tarde (reducida en 50%)
+                            const penalty = (timeDifference - 10) * 10000;
+                            gameState.money -= penalty;
+                            showPointsChange(computer, -penalty);
+                            showNotification(`¡Penalización de $${penalty.toLocaleString()} por refrescar demasiado tarde!`, 'error');
+                            
+                            // Registrar precisión (0% por refrescar demasiado tarde)
+                            gameState.accuracyData.push(0);
+                        }
+                    }
+                    
+                    // Reiniciar el usuario
+                    computer.timeUsed = 0;
+                    computer.timeAllotted = getRandomTimeIncrement();
+                    computer.currentWebsite = getRandomSafeWebsite();
+                    computer.currentActivity = getActivityForWebsite(computer.currentWebsite);
+                    computer.activityDuration = getRandomActivityDuration();
+                    computer.activityProgress = 0;
+                    computer.lastSuspiciousActivity = false;
+                    computer.lastSuspiciousType = null;
+                    refreshed = true;
+                }
+            });
+            
+            if (refreshed) {
+                updateInterface();
+            }
+        }
+
+        // Bloquear actividad sospechosa (acción K)
+        function blockActivity() {
+            if (gameState.gameOver || gameState.paused) return;
+            
+            let blocked = false;
+            gameState.selectedComputers.forEach(computerId => {
+                const computer = gameState.computers.find(c => c.id === computerId);
+                if (computer && !computer.scanning && !computer.infected) {
+                    const currentWebsite = websites[computer.currentWebsite];
+                    const isSuspicious = suspiciousActivities.includes(computer.currentActivity);
+                    
+                    // Solo bloquear actividades sospechosas en sitios inseguros
+                    if (!currentWebsite.safe && isSuspicious) {
+                        // Cambiar a una actividad regular
+                        computer.currentActivity = getActivityForWebsite(computer.currentWebsite);
+                        computer.activityDuration = getRandomActivityDuration();
+                        computer.activityProgress = 0;
+                        computer.lastSuspiciousActivity = false;
+                        computer.lastSuspiciousType = null;
+                        
+                        // Mostrar mensaje de éxito
+                        showNotification(`Actividad sospechosa bloqueada en PC ${computer.id}`, 'success');
+                        blocked = true;
+                    }
+                }
+            });
+            
+            if (blocked) {
+                updateInterface();
+            }
+        }
+
+        // Escanear PC (acción L)
+        function scanComputer() {
+            if (gameState.gameOver || gameState.paused) return;
+            
+            let scanned = false;
+            gameState.selectedComputers.forEach(computerId => {
+                const computer = gameState.computers.find(c => c.id === computerId);
+                if (computer && !computer.scanning && computer.infected) {
+                    // Iniciar reparación de virus (duplicar tiempo de escaneo)
+                    computer.scanning = true;
+                    computer.scanRequired = computer.virusMinutes * 2;
+                    computer.scanProgress = 0;
+                    scanned = true;
+                    showNotification(`Escaneo iniciado en PC ${computer.id}`, 'success');
+                }
+            });
+            
+            if (scanned) {
+                updateInterface();
+            }
+        }
+
+        // Calcular precisión promedio
+        function calculateAccuracy() {
+            if (gameState.accuracyData.length === 0) return 0;
+            
+            const sum = gameState.accuracyData.reduce((a, b) => a + b, 0);
+            return Math.round(sum / gameState.accuracyData.length);
+        }
+
+        // Mostrar pantalla de victoria
+        function showWinScreen() {
+            const accuracy = calculateAccuracy();
+            document.getElementById('win-accuracy').textContent = `${accuracy}%`;
+            document.getElementById('win-money').textContent = `$${gameState.money.toLocaleString()}`;
+            document.getElementById('win-difficulty').textContent = `${gameState.difficultyPercentage}%`;
+            document.getElementById('win-modal').style.display = 'flex';
+        }
+
+        // Mostrar pantalla de derrota
+        function showLoseScreen() {
+            const accuracy = calculateAccuracy();
+            document.getElementById('lose-accuracy').textContent = `${accuracy}%`;
+            document.getElementById('lose-money').textContent = `$${gameState.money.toLocaleString()}`;
+            document.getElementById('lose-difficulty').textContent = `${gameState.difficultyPercentage}%`;
+            
+            if (gameState.infiniteMode) {
+                // En modo infinito, mostrar tiempo sobrevivido
+                const totalMinutes = (gameState.time - 8) * 60 + gameState.minutes;
+                const hours = Math.floor(totalMinutes / 60);
+                const minutes = totalMinutes % 60;
+                document.getElementById('survived-time-value').textContent = `${hours}h ${minutes}m`;
+                document.getElementById('survived-time').style.display = 'block';
+                document.getElementById('lose-time').style.display = 'none';
+            } else {
+                // En modo normal, mostrar hora final
+                let displayHour, ampm;
+                
+                if (gameState.time >= 24) {
+                    // Después de las 11:59 PM, mostrar 12 AM
+                    displayHour = 12;
+                    ampm = 'AM';
+                } else {
+                    ampm = gameState.time < 12 ? 'AM' : 'PM';
+                    displayHour = gameState.time > 12 ? gameState.time - 12 : gameState.time;
+                    if (displayHour === 0) displayHour = 12; // Medianoche
+                }
+                
+                const displayMinutes = gameState.minutes.toString().padStart(2, '0');
+                document.getElementById('final-time').textContent = `${displayHour}:${displayMinutes} ${ampm}`;
+                document.getElementById('lose-time').style.display = 'block';
+                document.getElementById('survived-time').style.display = 'none';
+            }
+            
+            document.getElementById('lose-modal').style.display = 'flex';
+        }
+
+        // Avanzar el tiempo del juego (1 minuto cada 400ms)
+        function advanceTime() {
+            if (gameState.gameOver || gameState.paused) return;
+            
+            // Avanzar minutos
+            gameState.minutes += 1;
+            
+            // Si pasaron 60 minutos, avanzar la hora
+            if (gameState.minutes >= 60) {
+                gameState.time += 1;
+                gameState.minutes = 0;
+                
+                // En modo infinito, después de las 11:59 PM, volver a 12 AM
+                if (gameState.infiniteMode && gameState.time >= 24) {
+                    gameState.time = 0;
+                }
+            }
+            
+            // Actualizar dificultad
+            calculateDifficulty();
+            
+            // Actualizar cada computadora
+            let totalPenalty = 0;
+            
+            gameState.computers.forEach(computer => {
+                if (computer.userActive && !computer.scanning) {
+                    // Avanzar tiempo de uso
+                    computer.timeUsed += 1;
+                    
+                    // Avanzar progreso de actividad
+                    computer.activityProgress += 1;
+                    
+                    // Cambiar actividad si se completó
+                    if (computer.activityProgress >= computer.activityDuration) {
+                        const currentWebsite = websites[computer.currentWebsite];
+                        const isSuspicious = suspiciousActivities.includes(computer.currentActivity);
+                        
+                        // Si la actividad era sospechosa y el sitio es inseguro, infectar la PC
+                        if (!currentWebsite.safe && isSuspicious) {
+                            computer.infected = true;
+                            computer.virusMinutes = 0;
+                            showNotification(`¡PC ${computer.id} infectada por actividad sospechosa!`, 'error');
+                        }
+                        
+                        // Elegir nueva actividad con probabilidad afectada por la dificultad
+                        let nextActivity;
+                        const currentWebsiteType = websites[computer.currentWebsite].type;
+                        
+                        // Reducir drásticamente la probabilidad de actividades peligrosas consecutivas
+                        if (computer.lastSuspiciousActivity && !currentWebsite.safe) {
+                            // Si la última actividad fue sospechosa, reducir drásticamente la probabilidad de que la siguiente también lo sea
+                            if (Math.random() < 0.02 * gameState.difficultyFactor) { // Probabilidad afectada por dificultad
+                                nextActivity = getRandomSuspiciousActivity(computer.lastSuspiciousType);
+                                computer.lastSuspiciousActivity = true;
+                                computer.lastSuspiciousType = nextActivity;
+                            } else {
+                                nextActivity = getActivityForWebsite(computer.currentWebsite);
+                                computer.lastSuspiciousActivity = false;
+                                computer.lastSuspiciousType = null;
+                            }
+                        } else if (!currentWebsite.safe) {
+                            // Sitio inseguro, probabilidad afectada por dificultad
+                            if (Math.random() < 0.3 * gameState.difficultyFactor) { // Probabilidad base multiplicada por factor de dificultad
+                                nextActivity = getRandomSuspiciousActivity(computer.lastSuspiciousType);
+                                computer.lastSuspiciousActivity = true;
+                                computer.lastSuspiciousType = nextActivity;
+                            } else {
+                                nextActivity = getActivityForWebsite(computer.currentWebsite);
+                                computer.lastSuspiciousActivity = false;
+                                computer.lastSuspiciousType = null;
+                            }
+                        } else {
+                            // Sitio seguro, solo actividades regulares
+                            nextActivity = getActivityForWebsite(computer.currentWebsite);
+                            computer.lastSuspiciousActivity = false;
+                            computer.lastSuspiciousType = null;
+                        }
+                        
+                        computer.currentActivity = nextActivity;
+                        computer.activityDuration = getRandomActivityDuration();
+                        computer.activityProgress = 0;
+                    }
+                    
+                    // Cambiar de sitio web aleatoriamente (probabilidad aumentada con dificultad)
+                    if (Math.random() < 0.03 * gameState.difficultyFactor) {
+                        const isSuspicious = suspiciousActivities.includes(computer.currentActivity);
+                        
+                        // NO cambiar de sitio web si hay una actividad sospechosa en curso
+                        if (!isSuspicious) {
+                            const currentWebsite = websites[computer.currentWebsite];
+                            let possibleConnections = currentWebsite.connections;
+                            
+                            // Con mayor dificultad, aumentar probabilidad de cambiar a sitios inseguros
+                            if (Math.random() < 0.3 * gameState.difficultyFactor) {
+                                // Filtrar conexiones para priorizar sitios inseguros
+                                const unsafeConnections = possibleConnections.filter(conn => !websites[conn].safe);
+                                if (unsafeConnections.length > 0) {
+                                    possibleConnections = unsafeConnections;
+                                }
+                            }
+                            
+                            const nextWebsite = possibleConnections[Math.floor(Math.random() * possibleConnections.length)];
+                            computer.currentWebsite = nextWebsite;
+                            
+                            // Al cambiar de sitio, también cambiar actividad
+                            computer.currentActivity = getActivityForWebsite(nextWebsite);
+                            computer.activityDuration = getRandomActivityDuration();
+                            computer.activityProgress = 0;
+                            computer.lastSuspiciousActivity = false;
+                            computer.lastSuspiciousType = null;
+                        }
+                    }
+                    
+                    // Calcular penalización por tiempo excedido (por minuto) (reducida en 50%)
+                    if (computer.timeUsed > computer.timeAllotted) {
+                        const excessTime = computer.timeUsed - computer.timeAllotted;
+                        totalPenalty += excessTime * 10000;
+                    }
+                    
+                    // Si está infectado, aumentar el contador de minutos de virus
+                    if (computer.infected) {
+                        computer.virusMinutes += 1;
+                        // Calcular penalización por virus: incremental cada 10 minutos (reducida en 50%)
+                        const penaltyTier = Math.floor(computer.virusMinutes / 10);
+                        const virusPenalty = penaltyTier * 10000;
+                        totalPenalty += virusPenalty;
+                    }
+                } else if (computer.scanning) {
+                    // Avanzar el escaneo
+                    computer.scanProgress += 1;
+                    if (computer.scanProgress >= computer.scanRequired) {
+                        // Escaneo completado
+                        computer.scanning = false;
+                        computer.scanProgress = 0;
+                        computer.scanRequired = 0;
+                        
+                        if (computer.infected) {
+                            // Reparar virus
+                            computer.infected = false;
+                            computer.virusMinutes = 0;
+                            // Llevar a un sitio seguro después del escaneo
+                            computer.currentWebsite = getRandomSafeWebsite();
+                            computer.currentActivity = getActivityForWebsite(computer.currentWebsite);
+                            computer.lastSuspiciousActivity = false;
+                            computer.lastSuspiciousType = null;
+                            showNotification(`PC ${computer.id} reparada exitosamente.`, 'success');
+                        }
+                    }
+                }
+            });
+            
+            // Aplicar penalizaciones
+            if (totalPenalty > 0) {
+                gameState.money -= totalPenalty;
+                // Mostrar cambio de puntos en todas las computadoras afectadas
+                gameState.computers.forEach(computer => {
+                    if (computer.infected) {
+                        const penaltyTier = Math.floor(computer.virusMinutes / 10);
+                        const virusPenalty = penaltyTier * 5000;
+                        if (virusPenalty > 0) {
+                            showPointsChange(computer, -virusPenalty);
+                        }
+                    }
+                });
+            }
+            
+            // Actualizar interfaz
+            updateInterface();
+            
+            // Verificar si el juego ha terminado
+            if (gameState.money <= 0) {
+                gameState.gameOver = true;
+                showLoseScreen();
+                clearInterval(gameState.gameInterval);
+            } else if (!gameState.infiniteMode && gameState.time >= 20) { // 8:00 PM (solo en modo normal)
+                gameState.gameOver = true;
+                showWinScreen();
+                clearInterval(gameState.gameInterval);
+            }
+        }
+
+        // Manejar teclas presionadas
+        function handleKeyDown(event) {
+            if (gameState.gameOver) return;
+            
+            const computerId = keyToComputerMap[event.code];
+            if (computerId) {
+                gameState.selectedComputers.add(computerId);
+                updateInterface();
+            } else if (event.code === 'KeyJ') {
+                refreshUser();
+            } else if (event.code === 'KeyK') {
+                blockActivity();
+            } else if (event.code === 'KeyL') {
+                scanComputer();
+            } else if (event.code === 'Escape') {
+                hideInstructions();
+            }
+        }
+
+        // Manejar teclas liberadas
+        function handleKeyUp(event) {
+            const computerId = keyToComputerMap[event.code];
+            if (computerId) {
+                gameState.selectedComputers.delete(computerId);
+                updateInterface();
+            }
+        }
+
+        // Mostrar instrucciones
+        function showInstructions() {
+            gameState.paused = true;
+            const modal = document.getElementById('instructions-modal');
+            const grid = document.querySelector('.instructions-grid');
+            
+            // Crear el diagrama de controles
+            const controls = [
+                { key: 'Q', pc: 'PC 1' },
+                { key: 'W', pc: 'PC 2' },
+                { key: 'E', pc: 'PC 3' },
+                { key: 'A', pc: 'PC 4' },
+                { key: 'S', pc: 'PC 5' },
+                { key: 'D', pc: 'PC 6' },
+                { key: 'Z', pc: 'PC 7' },
+                { key: 'X', pc: 'PC 8' },
+                { key: 'C', pc: 'PC 9' }
+            ];
+            
+            grid.innerHTML = '';
+            controls.forEach(control => {
+                const keyBox = document.createElement('div');
+                keyBox.className = 'key-box';
+                
+                keyBox.innerHTML = `
+                    <div class="key">${control.key}</div>
+                    <div class="key-description">${control.pc}</div>
+                `;
+                grid.appendChild(keyBox);
+            });
+            
+            modal.style.display = 'flex';
+        }
+
+        // Ocultar instrucciones
+        function hideInstructions() {
+            gameState.paused = false;
+            document.getElementById('instructions-modal').style.display = 'none';
+        }
+
+        // Seleccionar dificultad
+        function selectDifficulty(difficulty) {
+            gameState.selectedDifficulty = difficulty;
+            gameState.infiniteMode = (difficulty === 'infinite');
+            
+            // Actualizar visualización de botones
+            document.querySelectorAll('.difficulty-btn').forEach(btn => {
+                if (btn.dataset.difficulty === difficulty) {
+                    btn.classList.add('selected');
+                } else {
+                    btn.classList.remove('selected');
+                }
+            });
+            
+            // Ocultar modal de dificultad
+            document.getElementById('difficulty-modal').style.display = 'none';
+            
+            // Inicializar juego con la dificultad seleccionada
+            initializeComputers();
+            updateInterface();
+            
+            // Iniciar el intervalo del juego (1 minuto cada 400ms)
+            if (gameState.gameInterval) {
+                clearInterval(gameState.gameInterval);
+            }
+            gameState.gameInterval = setInterval(advanceTime, 400);
+            
+            // Mostrar instrucciones
+            showInstructions();
+        }
+
+        // Inicializar el juego
+        window.onload = function() {
+            // Mostrar modal de selección de dificultad al inicio
+            document.getElementById('difficulty-modal').style.display = 'flex';
+            
+            // Eventos de botones de dificultad
+            document.querySelectorAll('.difficulty-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    selectDifficulty(this.dataset.difficulty);
+                });
+            });
+            
+            // Eventos de teclado
+            document.addEventListener('keydown', handleKeyDown);
+            document.addEventListener('keyup', handleKeyUp);
+            
+            // Eventos de botones
+            document.getElementById('info-btn').addEventListener('click', showInstructions);
+            document.getElementById('close-instructions').addEventListener('click', hideInstructions);
+            document.getElementById('refresh-btn').addEventListener('click', refreshUser);
+            document.getElementById('block-btn').addEventListener('click', blockActivity);
+            document.getElementById('scan-btn').addEventListener('click', scanComputer);
+            
+            // Eventos de pantallas de fin de juego
+            document.getElementById('win-close').addEventListener('click', function() {
+                document.getElementById('win-modal').style.display = 'none';
+            });
+            
+            document.getElementById('lose-close').addEventListener('click', function() {
+                document.getElementById('lose-modal').style.display = 'none';
+            });
+        };
+    </script>
+</body>
+</html>
